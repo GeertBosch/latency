@@ -39,6 +39,7 @@ const LatencyHistogramStore = Reflux.createStore({
    * @param {Object} appRegistry   app registry containing all stores and components
    */
   onActivated(appRegistry) {
+    if (appRegistry) return;
   },
 
   /**
@@ -56,6 +57,13 @@ const LatencyHistogramStore = Reflux.createStore({
    *
    */
   onConnected(error, dataService) {
+    if (error) {
+      this.setState({status: 'disabled', latencyStats: { error }});
+      return;
+    }
+    const command = {aggregate: 'x', cursor: {}, pipeline: [{$collStats: {latencyStats: {histograms: true}}}]};
+    this.setState({dataService, latencyStats: {command}});
+    dataService.command( 'test', command, this.handleLatencyStats.bind(this));
   },
 
   /**
@@ -66,7 +74,9 @@ const LatencyHistogramStore = Reflux.createStore({
    */
   getInitialState() {
     return {
-      status: 'enabled'
+      status: 'enabled',
+      latencyStats: { },
+      dataService: undefined
     };
   },
 
@@ -76,6 +86,23 @@ const LatencyHistogramStore = Reflux.createStore({
   toggleStatus() {
     this.setState({
       status: this.state.status === 'enabled' ? 'disabled' : 'enabled'
+    });
+    if (global.hadronApp.dataService && this.state.status === 'enabled') {
+      this.state.dataService.command(
+        'test',
+        {aggregate: 'x', cursor: {}, pipeline: [{$collStats: {latencyStats: {histograms: true}}}]},
+         this.handleLatencyStats.bind(this));
+    }
+  },
+
+  handleLatencyStats(error, result) {
+    if (error) {
+      this.setState({latencyStats: {error}});
+      return;
+    }
+
+    this.setState({
+      latencyStats: result.cursor.firstBatch[0]
     });
   },
 

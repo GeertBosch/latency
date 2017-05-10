@@ -6,7 +6,7 @@ const LatencyHistogramStore = require('./lib/stores');
  * A sample role for the component.
  */
 const ROLE = {
-  name: 'LatencyHistogram',
+  name: 'Latency Histogram',
   component: LatencyHistogramComponent
 };
 
