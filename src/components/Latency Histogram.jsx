@@ -19,24 +19,23 @@ class LatencyHistogramComponent extends React.Component {
    */
   render() {
     debug(this);
+    const reads = this.props.latencyStats.latencyStats
+      ? this.props.latencyStats.latencyStats.reads : {};
     const data = {
-      values: [
-        {a: 'C', b: 2}, {a: 'C', b: 7},
-        {a: 'C', b: 4}, {a: 'D', b: 1},
-        {a: 'D', b: 2}, {a: 'D', b: 6},
-        {a: 'E', b: 8}, {a: 'E', b: 4},
-        {a: 'E', b: 7}
-      ]
+      values: reads && reads.histogram ? reads.histogram : [ {micros: 0, count: 0} ]
     };
     const encoding = {
-      x: {field: 'a', type: 'nominal'},
-      y: {field: 'b', type: 'quantitative', aggregate: 'average'}
+      x: {field: 'micros', type: 'nominal'},
+      y: {field: 'count', type: 'quantitative', aggregate: 'average'}
     };
     const spec = {mark: 'bar', encoding: encoding};
     const collection = 'test.x';
 
     const stats = JSON.stringify(this.props.latencyStats);
     const hist = this.props.status === 'enabled' ? '' : '';
+    const vega = (
+        <VegaLite spec={spec} data={data} encoding={encoding}/>
+    );
 
     return (
       <div className="latency-histogram">
@@ -46,7 +45,7 @@ class LatencyHistogramComponent extends React.Component {
         <ToggleButton onClick={this.onClick} />
         {hist}
         <p>Latency statistics: <code>{stats}</code></p>
-        <VegaLite spec={spec} data={data} encoding={encoding}/>
+        {vega}
       </div>
     );
   }
