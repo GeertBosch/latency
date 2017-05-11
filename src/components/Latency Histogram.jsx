@@ -25,7 +25,7 @@ class LatencyHistogramComponent extends React.Component {
       values: reads && reads.histogram ? reads.histogram : [ {micros: 0, count: 0} ]
     };
     const encoding = {
-      x: {field: 'micros', type: 'nominal'},
+      x: {field: 'micros', type: 'quantitative', scale: {type: 'log'}},
       y: {field: 'count', type: 'quantitative', aggregate: 'average'}
     };
     const spec = {mark: 'bar', encoding: encoding};
@@ -40,7 +40,8 @@ class LatencyHistogramComponent extends React.Component {
     return (
       <div className="latency-histogram">
         <h2 className="latency-histogram-title">Latency Histogram for {collection}</h2>
-        <p><i>Displays a histogram with aggregated operation latency of reads, writes and commands</i></p>
+        <p><i>Displays a histogram with aggregated operation latency of reads, writes and
+          commands</i></p>
         <p>The current status is: <code>{this.props.status}</code></p>
         <ToggleButton onClick={this.onClick} />
         {hist}
