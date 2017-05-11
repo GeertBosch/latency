@@ -19,34 +19,54 @@ class LatencyHistogramComponent extends React.Component {
    */
   render() {
     debug(this);
-    const reads = this.props.latencyStats.latencyStats
-      ? this.props.latencyStats.latencyStats.reads : {};
-    const data = {
-      values: reads && reads.histogram ? reads.histogram : [ {micros: 0, count: 0} ]
-    };
+    const stats = this.props.latencyStats;
+    const reads = stats.latencyStats ? stats.latencyStats.reads : {};
+    const writes = stats.latencyStats ? stats.latencyStats.writes : {};
+    const commands = stats.latencyStats ? stats.latencyStats.commands : {};
+
     const encoding = {
       x: {field: 'micros', type: 'quantitative', scale: {type: 'log'}},
       y: {field: 'count', type: 'quantitative', aggregate: 'average'}
     };
-    const spec = {mark: 'bar', encoding: encoding};
-    const collection = 'test.x';
+    const collection = stats ? stats.ns : '';
 
-    const stats = JSON.stringify(this.props.latencyStats);
-    const hist = this.props.status === 'enabled' ? '' : '';
-    const vega = (
-        <VegaLite spec={spec} data={data} encoding={encoding}/>
+    const spec = {mark: 'bar', encoding: encoding};
+    const readData = {
+      values: reads && reads.histogram ? reads.histogram : [ {micros: 0, count: 0} ]
+    };
+    const writeData = {
+      values: writes && writes.histogram ? writes.histogram : [ {micros: 0, count: 0} ]
+    };
+    const commandData = {
+      values: commands && commands.histogram ? commands.histogram : [ {micros: 0, count: 0} ]
+    };
+    const readVega = (
+        <VegaLite spec={spec} data={readData} encoding={encoding}/>
     );
+    const writeVega = (
+        <VegaLite spec={spec} data={writeData} encoding={encoding}/>
+    );
+    const commandVega = (
+        <VegaLite spec={spec} data={commandData} encoding={encoding}/>
+    );
+    //    {vega}
 
     return (
       <div className="latency-histogram">
         <h2 className="latency-histogram-title">Latency Histogram for {collection}</h2>
         <p><i>Displays a histogram with aggregated operation latency of reads, writes and
           commands</i></p>
-        <p>The current status is: <code>{this.props.status}</code></p>
         <ToggleButton onClick={this.onClick} />
-        {hist}
-        <p>Latency statistics: <code>{stats}</code></p>
-        {vega}
+        <table>
+        <tr>
+        <td>Reads</td><td>Writes</td><td>Commands</td>
+        </tr>
+        <tr>
+        <td>{readVega}</td>
+        <td>{writeVega}</td>
+        <td>{commandVega}</td>
+        </tr>
+        </table>
       </div>
     );
   }
